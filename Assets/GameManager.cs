@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] List<GameObject> availableCardVariations = new List<GameObject>();
     public List<GameObject> currentlyAvailableCards = new List<GameObject>();
     [SerializeField] GameObject emptyCard;
-    PlayGrid playGrid;
+    public PlayGrid playGrid;
     GameTimer gameTimer;
 
     [SerializeField] List<Player> players = new List<Player>();
@@ -28,6 +28,9 @@ public class GameManager : MonoBehaviour
 
     public int activePlayer = 0;
     int activePlayerAP = 4;
+    List<Card> cooldownStack = new List<Card>();
+    List<Card> coolDownStackInQueue = new List<Card>();
+    List<Card> coolDownStackOutQueue = new List<Card>();
     
     private void Awake() {
         instance = this;
@@ -60,10 +63,7 @@ public class GameManager : MonoBehaviour
             DealCard(1);
         }
 
-
-        playGrid.makeCardsInactive();
-        players[activePlayer].StartTurn();
-        currentGameState = GameState.PLACE;
+        GoToPlacePhase();
     }
 
     public void GoToMovePhase(){
@@ -73,7 +73,23 @@ public class GameManager : MonoBehaviour
     }
 
     public void GoToDrawPhase(){
+        currentGameState = GameState.DRAW;
         players[activePlayer].EndTurn();
+        DealCard(activePlayer);
+        CountBridges();
+    }
+
+    public void CountBridges(){
+        currentGameState = GameState.COUNT;
+        Debug.Log(playGrid.SearchBridges());
+        activePlayer = activePlayer == 0 ? 1 : 0;
+        ProcessCoolDowns();
+        GoToPlacePhase();
+    }
+    public void GoToPlacePhase(){
+        currentGameState = GameState.PLACE;
+        playGrid.makeCardsInactive();
+        players[activePlayer].StartTurn();
     }
 
     void DealCard(int playerID){
@@ -81,6 +97,30 @@ public class GameManager : MonoBehaviour
         players[playerID].ReceiveCard(currentlyAvailableCards[rndIndex]);
         currentlyAvailableCards.Remove(currentlyAvailableCards[rndIndex]);
 
+    }
+
+    public void AddCardToCoolDownStack(Card card){
+        coolDownStackInQueue.Add(card);
+    }
+    public void RemoveCardFromCoolDownStack(Card card){
+        coolDownStackOutQueue.Add(card);
+    }
+
+    void ProcessCoolDowns(){
+        foreach (Card card in cooldownStack)
+        {
+            card.ReduceCooldown();
+        }
+        foreach (Card card in coolDownStackInQueue)
+        {
+            cooldownStack.Add(card);
+        }
+        coolDownStackInQueue.Clear();
+        foreach (Card card in coolDownStackOutQueue)
+        {
+            cooldownStack.Remove(card);
+        }
+        coolDownStackOutQueue.Clear();
     }
 
 
@@ -150,6 +190,7 @@ public class GameManager : MonoBehaviour
         }
         if(hoveredCard.GetComponent<Card>().cardID == 0){
             hoveredCard.GetComponent<Card>().ChangeCard(grabbedCard.GetComponent<Card>());
+            Debug.Log(grabbedCard.GetComponent<Card>().ownerID);
             if(grabbedCard.GetComponent<Card>().ownerID == 0){
                 grabbedCard.GetComponent<Card>().PutBack();
                 grabbedCard.GetComponent<Card>().MakeEmpty();

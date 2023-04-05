@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class Player : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class Player : MonoBehaviour
     [SerializeField] TextMeshProUGUI score;
     [SerializeField] TextMeshProUGUI instructions;
     [SerializeField] TextMeshProUGUI ap;
+    [SerializeField] Button endTurnButton;
     List<Card> cardsOnHand = new List<Card>();
     public int currentAP = 4;
 
@@ -34,6 +36,7 @@ public class Player : MonoBehaviour
     public void StartMovePhase(){
         LockCardInteraction();
         instructions.text = "Plättchen bewegen oder drehen";
+        endTurnButton.interactable = true;
     }
     
 
@@ -41,6 +44,7 @@ public class Player : MonoBehaviour
         LockCardInteraction();
         turnIndicator.SetActive(false);
         instructions.text = "";
+        endTurnButton.interactable = false;
     }
 
     public void RemoveAP(int amount){

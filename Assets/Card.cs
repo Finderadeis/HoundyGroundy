@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TMPro;
 
 public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHandler, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
 {
@@ -10,7 +11,9 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
     [SerializeField] Color hoverColorPlacable;
     [SerializeField] Color hoverColorUnplacable;
     [SerializeField] Color dragColor;
+    [SerializeField] Color cooldownColor;
     [SerializeField] Sprite emptyCardImage;
+    [SerializeField] TextMeshProUGUI cooldownDisplay;
     Sprite currentCardImage;
 
     public int colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight;
@@ -27,6 +30,7 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
         INACTIVE, ONCOOLDOWN, GRABBABLE, PLACABLE
     }
     CardState currentCardState;
+    int rotationValue = 0;
 
 
     private void Awake() {
@@ -57,18 +61,31 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
         currentCardImage = newCard.currentCardImage;
         img.sprite = currentCardImage;
         coolDown = 2;
+        rotationValue = newCard.rotationValue;
+        rect.Rotate(new Vector3(0,0,rotationValue));
+        GameManager.instance.playGrid.ReBuildColorMatrix();
+        StartCooldown();
     }
 
     public void PutBack(){
         transform.localPosition = originalPosition;
     }
     public void MakeInactive(){
+        if(currentCardState == CardState.ONCOOLDOWN){
+            return;
+        }
         currentCardState = CardState.INACTIVE;
     }
     public void MakeGrabbable(){
+        if(currentCardState == CardState.ONCOOLDOWN){
+            return;
+        }
         currentCardState = CardState.GRABBABLE;
     }
     public void MakePlacable(){
+        if(currentCardState == CardState.ONCOOLDOWN){
+            return;
+        }
         currentCardState = CardState.PLACABLE;
     }
 
@@ -79,6 +96,32 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
         colorBottomRight = colorBottomLeft;
         colorBottomLeft = tmp;
         rect.Rotate(new Vector3(0,0,-90));
+        rotationValue -= 90;
+        GameManager.instance.playGrid.ReBuildColorMatrix();
+        StartCooldown();
+    }
+
+    public void StartCooldown(){
+        coolDown = 2;
+        cooldownDisplay.gameObject.SetActive(true);
+        cooldownDisplay.text = coolDown.ToString();
+        currentCardState = CardState.ONCOOLDOWN;
+        img.color = cooldownColor;
+        GameManager.instance.AddCardToCoolDownStack(this);
+    }
+
+    public void ReduceCooldown(){
+        coolDown -= 1;
+
+        if(coolDown==0){
+            cooldownDisplay.gameObject.SetActive(false);
+            currentCardState = CardState.INACTIVE;
+            img.color = Color.white;
+            GameManager.instance.RemoveCardFromCoolDownStack(this);
+        }
+        else{
+            cooldownDisplay.text = coolDown.ToString();
+        }
     }
 
     public void OnPointerEnter(PointerEventData eventData)
@@ -99,6 +142,9 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
 
     public void OnPointerExit(PointerEventData eventData)
     {
+        if(currentCardState == CardState.ONCOOLDOWN){
+            return;
+        }
         img.color = Color.white;
         GameManager.instance.hoveredCard = null;
     }
@@ -130,8 +176,17 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if(currentCardState == CardState.GRABBABLE && GameManager.instance.currentGameState == GameManager.GameState.MOVE){
-            TurnCard();
+        switch (GameManager.instance.currentGameState)
+        {
+            case GameManager.GameState.PLACE:
+            case GameManager.GameState.MOVE:
+                if(currentCardState == CardState.GRABBABLE){
+                    TurnCard();
+                }
+                break;
+            default:
+                break;
         }
+        
     }
 }

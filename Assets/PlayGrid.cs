@@ -204,6 +204,106 @@ public class PlayGrid : MonoBehaviour
             cardsOnGrid.Clear();
         }
     }
+
+    List<Vector2Int> visitedCells = new List<Vector2Int>();
+    List<GridCell> matchingCells = new List<GridCell>();
+    bool bridgeFound;
+    int bridgeOwner;
+    int matrixSize;
+
+    public bool SearchBridges(){
+        visitedCells.Clear();
+        matchingCells.Clear();
+        bridgeFound = false;
+        matrixSize = gridSize*2;
+
+        for (int i = 0; i < gridSize*2; i++)
+        {
+            FindBridgesDown(1, new Vector2Int(0,i));
+            if (bridgeFound){
+                return true;
+            }
+            visitedCells.Clear();
+            matchingCells.Clear();
+            FindBridgesSide(1, new Vector2Int(0,i));
+            if (bridgeFound){
+                return true;
+            }
+            visitedCells.Clear();
+            matchingCells.Clear();
+            FindBridgesDown(2, new Vector2Int(0,i));
+            if (bridgeFound){
+                return true;
+            }
+            visitedCells.Clear();
+            matchingCells.Clear();
+            FindBridgesSide(2, new Vector2Int(0,i));
+            if (bridgeFound){
+                return true;
+            }
+            visitedCells.Clear();
+            matchingCells.Clear();
+        }
+
+        return bridgeFound;
+    }
+
+    void FindBridgesDown(int color, Vector2Int pos){
+        visitedCells.Add(pos);
+
+        if (gridValues[pos.x, pos.y].value == color){
+            matchingCells.Add(gridValues[pos.x,pos.y]);
+            if(pos.x == matrixSize-1){
+                bridgeFound = true;
+                bridgeOwner = color;
+            }
+
+            Vector2Int upNeighbor = new Vector2Int(pos.x-1, pos.y);
+            if(upNeighbor.x >= 0 && !visitedCells.Contains(upNeighbor)){
+                FindBridgesDown(color, upNeighbor);
+            }
+            Vector2Int rightNeighbor = new Vector2Int(pos.x, pos.y+1);
+            if(rightNeighbor.y <= matrixSize-1 && !visitedCells.Contains(rightNeighbor)){
+                FindBridgesDown(color,rightNeighbor);
+            }
+            Vector2Int downNeighbor = new Vector2Int(pos.x+1, pos.y);
+            if(downNeighbor.x <= matrixSize-1 && !visitedCells.Contains(downNeighbor)){
+                FindBridgesDown(color,downNeighbor);
+            }
+            Vector2Int leftNeighbor = new Vector2Int(pos.y, pos.y-1);
+            if(leftNeighbor.y >= 0 && !visitedCells.Contains(leftNeighbor)){
+                FindBridgesDown(color,leftNeighbor);
+            }
+        }
+    }
+    void FindBridgesSide(int color, Vector2Int pos){
+        visitedCells.Add(pos);
+
+        if (gridValues[pos.x, pos.y].value == color){
+            matchingCells.Add(gridValues[pos.x,pos.y]);
+            if(pos.y== matrixSize-1){
+                bridgeFound = true;
+                bridgeOwner = color;
+            }
+
+            Vector2Int upNeighbor = new Vector2Int(pos.x-1, pos.y);
+            if(upNeighbor.x >= 0 && !visitedCells.Contains(upNeighbor)){
+                FindBridgesSide(color, upNeighbor);
+            }
+            Vector2Int rightNeighbor = new Vector2Int(pos.x, pos.y+1);
+            if(rightNeighbor.y <= matrixSize-1 && !visitedCells.Contains(rightNeighbor)){
+                FindBridgesSide(color,rightNeighbor);
+            }
+            Vector2Int downNeighbor = new Vector2Int(pos.x+1, pos.y);
+            if(downNeighbor.x <= matrixSize-1 && !visitedCells.Contains(downNeighbor)){
+                FindBridgesSide(color,downNeighbor);
+            }
+            Vector2Int leftNeighbor = new Vector2Int(pos.y, pos.y-1);
+            if(leftNeighbor.y >= 0 && !visitedCells.Contains(leftNeighbor)){
+                FindBridgesSide(color,leftNeighbor);
+            }
+        }
+    }
 }
 
 public class GridCell
