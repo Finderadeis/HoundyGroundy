@@ -468,6 +468,8 @@ MonoBehaviour:
   ap: {fileID: 1971590621}
   endTurnButton: {fileID: 1414964086}
   currentAP: 4
+  currentScore: 0
+  currentBridgeCount: 0
 --- !u!1 &184313125
 GameObject:
   m_ObjectHideFlags: 0
@@ -1062,6 +1064,8 @@ MonoBehaviour:
   ap: {fileID: 739459363}
   endTurnButton: {fileID: 1529718826}
   currentAP: 4
+  currentScore: 0
+  currentBridgeCount: 0
 --- !u!1 &459410767
 GameObject:
   m_ObjectHideFlags: 0
@@ -2195,6 +2199,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94654df9d4a6ffd4e9885965cac367cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  matchingCards: []
+  bridgeOwner: 0
+  bridgePoints: 0
 --- !u!1 &1312163533
 GameObject:
   m_ObjectHideFlags: 0
@@ -3895,9 +3902,12 @@ MonoBehaviour:
   - {fileID: 5253976033421712197, guid: 4964223426842ca4f896c52867f57830, type: 3}
   currentlyAvailableCards: []
   emptyCard: {fileID: 8227919781113170531, guid: ad1e2d63e8183f14b89000497e2e8807, type: 3}
+  playGrid: {fileID: 0}
   players:
   - {fileID: 162243895}
   - {fileID: 446401510}
+  bridgeCount: {fileID: 1484409432}
+  currentBridges: 0
   currentGameState: 0
   grabbedCard: {fileID: 0}
   cardGrabbed: 0

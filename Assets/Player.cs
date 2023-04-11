@@ -16,6 +16,14 @@ public class Player : MonoBehaviour
     [SerializeField] Button endTurnButton;
     List<Card> cardsOnHand = new List<Card>();
     public int currentAP = 4;
+    public int currentScore = 0;
+    public int currentBridgeCount = 0;
+
+    private void Start()
+    {
+        bridgeCount.text = currentBridgeCount.ToString();
+        score.text = currentScore.ToString();
+    }
 
 
     public void ReceiveCard(GameObject card){
@@ -69,5 +77,15 @@ public class Player : MonoBehaviour
             DestroyImmediate(hand.transform.GetChild(0).gameObject);
         }
         turnIndicator.SetActive(false);
+        currentScore = 0;
+        currentBridgeCount = 0;
+    }
+
+    public void AddBridge(int points)
+    {
+        currentBridgeCount++;
+        currentScore += points;
+        bridgeCount.text = currentBridgeCount.ToString();
+        score.text = currentScore.ToString();
     }
 }

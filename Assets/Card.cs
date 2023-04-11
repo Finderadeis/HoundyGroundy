@@ -17,6 +17,7 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
     Sprite currentCardImage;
 
     public int colorTopLeft, colorTopRight, colorBottomLeft, colorBottomRight;
+    [SerializeField] TextMeshProUGUI tL, tR, bL, bR;
     public int cardID;
     public int ownerID;
     int owningPlayer = 0;
@@ -45,11 +46,19 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
         colorTopRight = 0;
         colorBottomLeft = 0;
         colorBottomRight = 0;
+        tL.text = colorTopLeft.ToString();
+        tR.text = colorTopRight.ToString();
+        bL.text = colorBottomLeft.ToString();
+        bR.text = colorBottomRight.ToString();
         ownerID = 0;
         coolDown = 0;
         currentCardImage = emptyCardImage;
         img.sprite = currentCardImage;
         cardID = 0;
+        cooldownDisplay.gameObject.SetActive(false);
+        currentCardState = CardState.INACTIVE;
+        img.color = Color.white;
+        GameManager.instance.RemoveCardFromCoolDownStack(this);
     }
 
     public void ChangeCard(Card newCard){
@@ -58,6 +67,10 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
         colorTopRight = newCard.colorTopRight;
         colorBottomLeft = newCard.colorBottomLeft;
         colorBottomRight = newCard.colorBottomRight;
+        tL.text = colorTopLeft.ToString();
+        tR.text = colorTopRight.ToString();
+        bL.text = colorBottomLeft.ToString();
+        bR.text = colorBottomRight.ToString();
         currentCardImage = newCard.currentCardImage;
         img.sprite = currentCardImage;
         coolDown = 2;
@@ -91,14 +104,23 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
 
     void TurnCard(){
         int tmp = colorTopLeft;
-        colorTopLeft = colorTopRight;
-        colorTopRight = colorBottomRight;
-        colorBottomRight = colorBottomLeft;
-        colorBottomLeft = tmp;
+
+        colorTopLeft = colorBottomLeft;
+        colorBottomLeft = colorBottomRight;
+        colorBottomRight = colorTopRight;
+        colorTopRight = tmp;
+
+        tL.text = "tl "+colorTopLeft.ToString();
+        tR.text = "tr " + colorTopRight.ToString();
+        bL.text = "bl " + colorBottomLeft.ToString();
+        bR.text = "br " + colorBottomRight.ToString();
         rect.Rotate(new Vector3(0,0,-90));
         rotationValue -= 90;
         GameManager.instance.playGrid.ReBuildColorMatrix();
-        StartCooldown();
+        if(GameManager.instance.currentGameState == GameManager.GameState.MOVE)
+        {
+            StartCooldown();
+        }
     }
 
     public void StartCooldown(){
@@ -122,6 +144,11 @@ public class Card : MonoBehaviour, IDragHandler, IBeginDragHandler, IEndDragHand
         else{
             cooldownDisplay.text = coolDown.ToString();
         }
+    }
+
+    public void MarkBridge()
+    {
+        img.color = Color.red;
     }
 
     public void OnPointerEnter(PointerEventData eventData)

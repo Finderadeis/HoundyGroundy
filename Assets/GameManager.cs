@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,6 +17,8 @@ public class GameManager : MonoBehaviour
     GameTimer gameTimer;
 
     [SerializeField] List<Player> players = new List<Player>();
+    [SerializeField] TextMeshProUGUI bridgeCount;
+    public int currentBridges = 0;
     bool gameRunning = false;
     float timeRunning = 0.0f;
     public enum GameState
@@ -51,6 +55,8 @@ public class GameManager : MonoBehaviour
     public void StartGame(){
         int startingPlayer = Random.Range(0, 2);
         activePlayer = startingPlayer;
+        currentBridges = 0;
+        bridgeCount.text = currentBridges.ToString();
 
         playGrid.Initialize(emptyCard, gridSize);
         InitializeDrawPool();
@@ -76,12 +82,16 @@ public class GameManager : MonoBehaviour
         currentGameState = GameState.DRAW;
         players[activePlayer].EndTurn();
         DealCard(activePlayer);
-        CountBridges();
+        GoToCountPhase();
     }
 
-    public void CountBridges(){
+    public void GoToCountPhase(){
         currentGameState = GameState.COUNT;
-        Debug.Log(playGrid.SearchBridges());
+        playGrid.ReBuildColorMatrix();
+        if (playGrid.SearchBridges())
+        {
+            ProcessBridgeFound();
+        }
         activePlayer = activePlayer == 0 ? 1 : 0;
         ProcessCoolDowns();
         GoToPlacePhase();
@@ -190,7 +200,6 @@ public class GameManager : MonoBehaviour
         }
         if(hoveredCard.GetComponent<Card>().cardID == 0){
             hoveredCard.GetComponent<Card>().ChangeCard(grabbedCard.GetComponent<Card>());
-            Debug.Log(grabbedCard.GetComponent<Card>().ownerID);
             if(grabbedCard.GetComponent<Card>().ownerID == 0){
                 grabbedCard.GetComponent<Card>().PutBack();
                 grabbedCard.GetComponent<Card>().MakeEmpty();
@@ -199,6 +208,11 @@ public class GameManager : MonoBehaviour
                 Destroy(grabbedCard);
             }
             playGrid.ReBuildColorMatrix();
+
+            if (playGrid.SearchBridges())
+            {
+                ProcessBridgeFound();
+            }
 
             switch (currentGameState)
             {
@@ -219,5 +233,15 @@ public class GameManager : MonoBehaviour
             grabbedCard.GetComponent<Card>().PutBack();
         }
         cardGrabbed = false;
+    }
+
+    public void ProcessBridgeFound()
+    {
+        int bridgeOwner = playGrid.bridgeOwner;
+        int bridgePoints = playGrid.bridgePoints;
+        StartCoroutine(playGrid.MarkMatchingCards());
+        players[bridgeOwner-1].AddBridge(bridgePoints);
+        currentBridges++;
+        bridgeCount.text = currentBridges.ToString();
     }
 }
