@@ -50,16 +50,17 @@ public class PlayGrid : MonoBehaviour
     }
 
     void PrintMatrix(){
-        string output = "";
+        Debug.Log("----------------------------------");
+        string output = "\n";
         for (int row = 0; row < gridSize*2; row++)
         {
             for (int col = 0; col < gridSize*2; col++)
             {
                 output += (gridValues[row,col].value + "  ");
             }
-            Debug.Log(output);
-            output = "";
+            output += "\n"; 
         }
+        Debug.Log(output);
     }
 
     public void ReBuildColorMatrix(){
@@ -196,6 +197,7 @@ public class PlayGrid : MonoBehaviour
                 }
             }
         }
+        PrintMatrix();
     }
 
     public void Reset(){
@@ -328,7 +330,7 @@ public class PlayGrid : MonoBehaviour
         {
             card.MarkBridge();
         }
-        yield return new WaitForSeconds(3.5f);
+        yield return new WaitForSeconds(1.5f);
         foreach (Card card in matchingCards)
         {
             card.MakeEmpty();
